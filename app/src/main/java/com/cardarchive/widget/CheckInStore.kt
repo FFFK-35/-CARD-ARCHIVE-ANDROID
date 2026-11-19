@@ -1,6 +1,8 @@
 package com.cardarchive.widget
 
 import android.content.Context
+import org.json.JSONArray
+import org.json.JSONObject
 import java.time.LocalDate
 
 data class ArchiveState(
@@ -19,6 +21,7 @@ object CheckInStore {
     private const val KEY_TOTAL = "total_check_ins"
     private const val KEY_CHESTS = "chest_count"
     private const val KEY_LAST_DATE = "last_check_in_date"
+    private const val KEY_LEGACY_JSON = "legacy_archive_json"
 
     fun read(context: Context): ArchiveState {
         val p = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
@@ -28,6 +31,15 @@ object CheckInStore {
             chestCount = p.getInt(KEY_CHESTS, 0),
             lastCheckInDate = p.getString(KEY_LAST_DATE, null)
         )
+    }
+
+    fun readLegacyData(context: Context): String? =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_LEGACY_JSON, null)
+
+    fun restoreLegacyData(context: Context, raw: String?) {
+        val editor = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+        if (raw == null) editor.remove(KEY_LEGACY_JSON) else editor.putString(KEY_LEGACY_JSON, raw)
+        editor.commit()
     }
 
     fun restore(context: Context, state: ArchiveState) {
@@ -53,12 +65,27 @@ object CheckInStore {
 
         val chestEarned = total % 6 == 0
         val chests = p.getInt(KEY_CHESTS, 0) + if (chestEarned) 1 else 0
-        p.edit()
+        val editor = p.edit()
             .putInt(KEY_TOTAL, total)
             .putInt(KEY_COINS, coins)
             .putInt(KEY_CHESTS, chests)
             .putString(KEY_LAST_DATE, today)
-            .apply()
+
+        // Keep the imported V0.4 archive in step with future native check-ins.
+        p.getString(KEY_LEGACY_JSON, null)?.let { raw ->
+            try {
+                val legacy = JSONObject(raw)
+                val dates = legacy.optJSONArray("checkins") ?: JSONArray()
+                dates.put(today)
+                legacy.put("checkins", dates)
+                legacy.put("coins", coins)
+                legacy.put("chests", chests)
+                editor.putString(KEY_LEGACY_JSON, legacy.toString())
+            } catch (_: Exception) {
+                // Never block a valid native check-in because of an old backup payload.
+            }
+        }
+        editor.apply()
 
         return CheckInResult.Success(
             ArchiveState(coins, total, chests, today),
