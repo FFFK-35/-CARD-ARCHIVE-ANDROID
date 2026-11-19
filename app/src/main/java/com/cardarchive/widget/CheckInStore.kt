@@ -30,6 +30,16 @@ object CheckInStore {
         )
     }
 
+    fun restore(context: Context, state: ArchiveState) {
+        val editor = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+            .putInt(KEY_COINS, state.coins)
+            .putInt(KEY_TOTAL, state.totalCheckIns)
+            .putInt(KEY_CHESTS, state.chestCount)
+        if (state.lastCheckInDate == null) editor.remove(KEY_LAST_DATE)
+        else editor.putString(KEY_LAST_DATE, state.lastCheckInDate)
+        editor.commit()
+    }
+
     @Synchronized
     fun checkIn(context: Context): CheckInResult {
         val p = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
