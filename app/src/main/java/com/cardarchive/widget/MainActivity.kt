@@ -26,7 +26,7 @@ class MainActivity : Activity() {
             typeface = Typeface.DEFAULT_BOLD
         }
         val details = TextView(this).apply {
-            text = "原生桌面小组件已安装\n\n金币：${state.coins}\n累计有效打卡：${state.totalCheckIns} 次\n阶段进度：${state.stageProgress} / 3\n\n后续版本将接入完整收藏器。"
+            text = "原生桌面小组件已安装\n\n金币：${state.coins}\n累计有效打卡：${state.totalCheckIns} 次\n阶段进度：${state.stageProgress} / 3\n普通宝箱：${state.chestCount} 个\n\n后续版本将接入完整收藏器。"
             textSize = 16f
             setTextColor(Color.rgb(80, 74, 90))
             gravity = Gravity.CENTER
