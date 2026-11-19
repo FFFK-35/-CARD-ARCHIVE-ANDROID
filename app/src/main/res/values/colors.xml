@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="archive_ink">#302B3A</color>
+    <color name="archive_muted">#827B8D</color>
+    <color name="archive_lilac">#9584B8</color>
+    <color name="archive_surface">#F7F5FA</color>
+    <color name="archive_white">#FFFFFF</color>
+</resources>
